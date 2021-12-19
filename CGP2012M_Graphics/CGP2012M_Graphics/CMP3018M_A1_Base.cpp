@@ -308,6 +308,18 @@ int main(int argc, char *argv[]) {
 		glBindTexture(GL_TEXTURE_2D, texArray[0].texture);
 		models[1].render();
 		
+		//skybox
+		//no lighting on skybox, so we don't have to sort normal matrix etc
+		viewMatrix = glm::mat4(glm::mat3(camera.GetViewMatrix()));
+		glUseProgram(sb.sbShaderProgram);
+		modelLocation = glGetUniformLocation(sb.sbShaderProgram, "uModel");
+		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
+		viewLocation = glGetUniformLocation(sb.sbShaderProgram, "uView");
+		glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(camera.GetViewMatrix()));
+		projectionLocation = glGetUniformLocation(sb.sbShaderProgram, "uProjection");
+		glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+		sb.renderSkyBox();
+
 		//sphere model
 		//set .obj model
 		glUseProgram(models[0].shaderProgram);
@@ -357,17 +369,7 @@ int main(int argc, char *argv[]) {
 		models[0].render();
 		errorLabel = 7;
 
-		//skybox
-		//no lighting on skybox, so we don't have to sort normal matrix etc
-		viewMatrix = glm::mat4(glm::mat3(camera.GetViewMatrix()));
-		glUseProgram(sb.sbShaderProgram);
-		modelLocation = glGetUniformLocation(sb.sbShaderProgram, "uModel");
-		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
-		viewLocation = glGetUniformLocation(sb.sbShaderProgram, "uView");
-		glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(camera.GetViewMatrix()));
-		projectionLocation = glGetUniformLocation(sb.sbShaderProgram, "uProjection");
-		glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
-		sb.renderSkyBox();
+		
 
 		//set to wireframe so we can see the circles
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);

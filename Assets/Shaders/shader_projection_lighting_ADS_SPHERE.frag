@@ -9,6 +9,7 @@ in vec3 viewPosition;
 in float time;
 in vec3 position;
 
+
 uniform sampler2D aTex;		//uniform holding texture info from main programme
 uniform sampler2D aTex2;	
 
@@ -62,6 +63,16 @@ float cnoise(vec2 P){
   return 2.3 * n_xy;
 }
 
+float fourier(float x)
+{
+	float a = sin(x);
+	float b = sin(3*x)/3;
+	float c = sin(5*x)/5;
+	float d = sin(7*x)/7;
+	float e = sin(9*x)/9;
+	float f = sin(11*x)/11;
+	return a+b+c+d+e+f;
+}
 
 void main()
 {	//LIGHTING
@@ -98,6 +109,7 @@ void main()
 	//
 
 	vec4 textureColour = texture(aTex, textureCoordinate);
+	vec4 textureColour2 = texture(aTex2, textureCoordinate);
 	float ovn = 0.0;
 	vec2 uv = textureCoordinate;
 	uv *= 10.0;
@@ -109,12 +121,25 @@ void main()
     ovn += (cnoise(uv  *256.0 )*0.0625);
     ovn += (cnoise(uv   *1024.0 )*0.03125);
 	
-	vec4 temp = mix(vec4(0.0, 1.0, 0.0, 1.0), vec4(1.0,0.0, 0.0, 1.0), abs(sin(ovn*abs(sin(time/10000.0)))));
-	vertColour = vec4(temp);
+	// Weird green/red thing as base
+	//vec4 temp = mix(vec4(0.0, 1.0, 0.0, 1.0), vec4(1.0,0.0, 0.0, 1.0), abs(sin(ovn*abs(sin(time/10000.0)))));
+	//vertColour = vec4(temp);
+
+	// 1st attempt at mix of 2 textures
+	float affect = smoothstep(0.0, 1.0, ovn+(2*sin(time/1000.0)));
+	//vec4 morphColour = mix(textureColour.rgba, textureColour2.rgba, ovn*affect);
 	
+	// interpolating between texture1 and a flat transparent pink
+	vec4 morphColour = mix(textureColour.rgba, vec4(0.8, 0.2, 0.8, 0.0), affect);
+
+	// Shader that uses the above morphcolour vec4 + lighting
+	vertColour = vec4((ambient+diffuse+specular),1.0) * (morphColour);
+	// Shader that applies texture+lighting
 	//vertColour = vec4((ambient+diffuse+specular),1.0) * textureColour;
+	// Shader that applies noise+lighting
 	//vertColour = vec4((ambient+diffuse+specular)*ovn,1.0);
-	//vertColour = vec4(ovn*vec3(0.8,0.5,0.1)*(abs(sin(time/1000.0))+0.5), 1.0);
+	// Shader w specific colour noise
+	//vertColour = vec4(ovn*vec3(0.1,0.5,0.8)*(abs(sin(time/1000.0))+0.5), 1.0);
 	
 	
 
